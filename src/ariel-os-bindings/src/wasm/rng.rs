@@ -7,6 +7,8 @@ use rand_core::RngCore as _;
 
 use wasmtime::component::{Resource, bindgen};
 
+use super::ArielOSHost;
+
 bindgen!({
     world: "ariel:wasm-bindings/rng",
     path: "../../wit/",
@@ -26,6 +28,8 @@ impl Default for ArielRNGHost {
     }
 }
 
+impl Host for ArielRNGHost {}
+
 impl HostRNG for ArielRNGHost {
     fn next_u32(&mut self) -> u32 {
         self.rng.next_u32()
@@ -43,4 +47,19 @@ impl HostRNG for ArielRNGHost {
     }
 }
 
-impl Host for ArielRNGHost {}
+impl Host for ArielOSHost {}
+
+impl HostRNG for ArielOSHost {
+    fn next_u32(&mut self) -> u32 {
+        self.rng_host.next_u32()
+    }
+    fn next_u64(&mut self) -> u64 {
+        self.rng_host.next_u64()
+    }
+    fn random_bytes(&mut self, len: u32) -> Vec<u8> {
+        self.rng_host.random_bytes(len)
+    }
+    fn drop(&mut self, rep: wasmtime::component::Resource<RNG>) -> wasmtime::Result<()> {
+        self.rng_host.drop(rep)
+    }
+}

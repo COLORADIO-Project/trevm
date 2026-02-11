@@ -5,6 +5,8 @@ use alloc::string::String;
 
 use wasmtime::component::bindgen;
 
+use super::ArielOSHost;
+
 bindgen!({
     world: "ariel:wasm-bindings/log@0.0.1",
     path: "../../wit/",
@@ -12,10 +14,7 @@ bindgen!({
 
 pub use ariel::wasm_bindings::log_api::{Host, HostWithStore, add_to_linker};
 
-#[derive(Default)]
-pub(crate) struct ArielLogHost;
-
-impl Host for ArielLogHost {
+impl Host for ArielOSHost {
     fn info(&mut self, input: String) {
         info!("[WASM] {}", input.as_str());
     }

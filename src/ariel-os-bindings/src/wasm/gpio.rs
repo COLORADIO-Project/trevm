@@ -9,7 +9,7 @@ bindgen!({
     world: "ariel:wasm-bindings/gpio",
     path: "../../wit/",
     imports: {
-        "ariel:wasm-bindings/gpio-api/wait-for-button-low": async
+        "ariel:wasm-bindings/gpio-api.wait-for-button-low": async
     }
 });
 
@@ -45,8 +45,10 @@ impl Host for ArielOSHost {
 }
 
 impl ArielOSHost {
-    pub fn bind_peris(&mut self, led: Output, button: IntEnabledInput) {
+    pub fn bind_led(&mut self, led: Output) {
         self.gpio_host.led = Some(led);
+    }
+    pub fn bind_button(&mut self, button: IntEnabledInput) {
         self.gpio_host.button = Some(button);
     }
 }
