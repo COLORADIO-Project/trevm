@@ -13,6 +13,8 @@ use alloc::vec::Vec;
 
 use wasmtime::component::bindgen;
 
+use super::ArielOSHost;
+
 bindgen!({
     world: "ariel:wasm-bindings/udp",
     path: "../../wit/",
@@ -204,3 +206,54 @@ impl HostUdpSocket for ArielUDPHost {
 }
 
 impl Host for ArielUDPHost {}
+
+impl Host for ArielOSHost {}
+
+impl HostUdpSocket for ArielOSHost {
+    fn bind(&mut self, port: u16) -> Result<(), ()> {
+        self.udp_host.bind(port)
+    }
+
+    fn send(
+        &mut self,
+        data: wasmtime::component::__internal::Vec<u8>,
+        endpoint: gen_udp::UdpMetadata,
+    ) -> Result<(), ()> {
+        self.udp_host.send(data, endpoint)
+    }
+
+    fn try_recv(
+        &mut self,
+    ) -> Result<
+        Option<(
+            wasmtime::component::__internal::Vec<u8>,
+            gen_udp::UdpMetadata,
+        )>,
+        (),
+    > {
+        self.udp_host.try_recv()
+    }
+
+    fn drop(
+        &mut self,
+        rep: wasmtime::component::Resource<gen_udp::UdpSocket>,
+    ) -> wasmtime::Result<()> {
+        self.udp_host.drop(rep)
+    }
+}
+
+impl ArielOSHost {
+    pub unsafe fn initialize_socket(
+        &mut self,
+        stack: ariel_os_embassy::NetworkStack,
+        rx_meta: &mut [ariel_os_embassy::reexports::embassy_net::udp::PacketMetadata],
+        rx_buffer: &mut [u8],
+        tx_meta: &mut [ariel_os_embassy::reexports::embassy_net::udp::PacketMetadata],
+        tx_buffer: &mut [u8],
+    ) {
+        unsafe {
+            self.udp_host
+                .initialize_socket(stack, rx_meta, rx_buffer, tx_meta, tx_buffer)
+        };
+    }
+}
