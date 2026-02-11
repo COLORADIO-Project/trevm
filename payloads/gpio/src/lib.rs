@@ -28,9 +28,10 @@ impl Guest for MyComponent {
     fn blinky() -> () {
         info("In the capsule");
         loop {
+            info("Waiting for a button to be pressed");
             wait_for_button_low().unwrap();
             toggle_led().unwrap();
-            sleep(300);
+            sleep(100);
         }
     }
 }
