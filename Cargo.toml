@@ -23,7 +23,7 @@ ariel-os-hal = { path = "build/imports/ariel-os/src/ariel-os-hal", default-featu
 ariel-os-sensors = { path = "build/imports/ariel-os/src/ariel-os-sensors", default-features = false }
 ariel-os-sensors-registry = { path = "build/imports/ariel-os/src/ariel-os-sensors-registry", default-features = false }
 
-wasmtime = { version = "38.0", default-features = false, features = [
+wasmtime = {  git = "https://github.com/bytecodealliance/wasmtime", rev = "3dc6b5ec5572ab8b304c668d5b929bbc7f49cbcf", default-features = false, features = [
   "pulley",
   "runtime",
   "component-model",

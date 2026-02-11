@@ -5,13 +5,13 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.40", features = ["derive"]}
-wasmtime = { version = "38.0", default-features = false, features = ["component-model", "async", "cranelift", "pulley"] }
+wasmtime = {  git = "https://github.com/bytecodealliance/wasmtime", rev = "3dc6b5ec5572ab8b304c668d5b929bbc7f49cbcf", default-features = false, features = ["component-model", "async", "cranelift", "pulley"] }
 miette = { version = "7.2.0", features = ["fancy"] }
 thiserror = { version = "2.0.12" }
 
 ---
 #![feature(trim_prefix_suffix)]
-use std::{fs, io, path::{PathBuf, Path}};
+use std::{fs, io, path::{PathBuf, Path}, process::Command};
 use std::io::BufRead as _;
 use clap::{Parser, ValueEnum, builder::PossibleValue};
 use miette::Diagnostic;
@@ -171,7 +171,7 @@ fn main() -> miette::Result<()> {
 
             std::println!("{:?}", args);
 
-            let output = std::process::Command::new("cargo")
+            let output = Command::new("cargo")
                 .args(&args)
                 .output()
                 .map_err(Error::from)?;
@@ -193,8 +193,6 @@ fn main() -> miette::Result<()> {
             Err(io::Error::new(io::ErrorKind::InvalidInput, "--path should be wasm file or a path to a Cargo.toml manifest")).map_err(Error::from)?
         }
     };
-
-    std::println!("{}", new_path.display());
 
     if !module {
         // Turn into a component
