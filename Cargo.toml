@@ -20,6 +20,8 @@ ariel-os-embassy = { path = "build/imports/ariel-os/src/ariel-os-embassy", defau
 ariel-os-coap = { path = "build/imports/ariel-os/src/ariel-os-coap", default-features = false }
 ariel-os-random = { path = "build/imports/ariel-os/src/ariel-os-random", default-features = false }
 ariel-os-hal = { path = "build/imports/ariel-os/src/ariel-os-hal", default-features = false }
+ariel-os-sensors = { path = "build/imports/ariel-os/src/ariel-os-sensors", default-features = false }
+ariel-os-sensors-registry = { path = "build/imports/ariel-os/src/ariel-os-sensors-registry", default-features = false }
 
 wasmtime = { version = "38.0", default-features = false, features = [
   "pulley",

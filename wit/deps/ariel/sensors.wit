@@ -1,0 +1,121 @@
+package ariel:wasm-bindings@0.0.1;
+
+/// Interface that reflects the sensor trait from ariel-os-sensors
+/// The host is responsible for registering the sensors before/simultaneously
+/// with the component instanciation
+interface sensors-api {
+    // Trigger measurements on all sensors of a certain category
+    // FIXME: Error type
+    trigger-measurements: func(category: option<category>) -> result;
+
+    // blocks wasm until the readings are available and optionally filter them by their label
+    wait-for-reading: func(label: option<label>) -> result<list<tuple<sample, channel>>>;
+
+    record sample {
+        value: s32,
+        metadata: sample-metadata,
+    }
+
+    record channel {
+        label: label,
+        scaling: s8,
+        unit: measurement-unit,
+    }
+
+    enum category {
+        accelerometer,
+        accelerometer-temperature,
+        accelerometer-gyroscope,
+        accelerometer-gyroscope-temperature,
+        accelerometer-magnetometer-temperature,
+        ammeter,
+        co2-gas,
+        color,
+        gnss,
+        gyroscope,
+        relative-humidity,
+        relative-humidity-temperature,
+        light,
+        magnetometer,
+        ph,
+        pressure,
+        push-button,
+        temperature,
+        tvoc,
+        voltage,
+    }
+
+    enum label {
+        acceleration-x,
+        acceleration-y,
+        acceleration-z,
+        altitude,
+        angular-velocity-x,
+        angular-velocity-y,
+        angular-velocity-z,
+        ground-speed,
+        latitude,
+        longitude,
+        opaque,
+        relative-humidity,
+        heading,
+        temperature,
+        vertical-speed,
+        x,
+        y,
+        z,
+    }
+
+    enum measurement-unit {
+        accel-g,
+        ampere,
+        becquerel,
+        boolean,
+        candela,
+        celsius,
+        coulomb,
+        decibel,
+        decimaldegree,
+        degree,
+        degree-per-second,
+        farad,
+        gram,
+        gray,
+        henry,
+        hertz,
+        joule,
+        katal,
+        kelvin,
+        lumen,
+        lux,
+        meter,
+        meter-per-second,
+        mole,
+        newton,
+        ohm,
+        pascal,
+        percent,
+        percentage-relative-humidity,
+        radian,
+        second,
+        siemens,
+        sievert,
+        steradian,
+        tesla,
+        volt,
+        watt,
+        weber,
+    }
+
+    variant sample-metadata {
+        unknown-accuracy,
+        no-measurement-error,
+        symmetrical-error(tuple<u8, s8, s8>),
+        channel-temporarily-unavailable,
+        channel-disabled,
+    }
+}
+
+world sensors {
+    import sensors-api;
+}
