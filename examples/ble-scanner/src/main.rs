@@ -4,8 +4,8 @@
 use ariel_os::debug::log::{defmt, info};
 use ariel_os::debug::{ExitCode, exit};
 
-use ariel_os::time::{Timer, Duration};
-use embassy_futures::select::{select3, Either3};
+use ariel_os::time::{Duration, Timer};
+use embassy_futures::select::{Either3, select3};
 use wasmtime::component::{Component, HasSelf, Linker, bindgen};
 use wasmtime::{AsContextMut, Config, Engine, Store};
 
@@ -20,7 +20,6 @@ use trouble_host::{
 };
 
 use ariel_os_bindings::wasm::ArielOSHost;
-
 
 bindgen!({
     world: "example-ble-scanner",
@@ -89,33 +88,40 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
         match select3(
             runner.run_with_handler(&printer),
             async {
-                    let config = ScanConfig::<'_> {
-                        active: true,
-                        phys: PhySet::M1,
-                        interval: Duration::from_secs(1),
-                        window: Duration::from_secs(1),
-                        ..Default::default()
-                    };
-                    let mut _session = scanner.scan(&config).await.unwrap();
-                    // Scan forever
-                    info!("scanning...");
-                    loop {
-                        Timer::after_secs(1).await;
-                    }
-                },
-                Timer::after_secs(5)
-        ).await {
+                let config = ScanConfig::<'_> {
+                    active: true,
+                    phys: PhySet::M1,
+                    interval: Duration::from_secs(1),
+                    window: Duration::from_secs(1),
+                    ..Default::default()
+                };
+                let mut _session = scanner.scan(&config).await.unwrap();
+                // Scan forever
+                info!("scanning...");
+                loop {
+                    Timer::after_secs(1).await;
+                }
+            },
+            Timer::after_secs(5),
+        )
+        .await {
             Either3::First(_) => unreachable!(),
             Either3::Second(_) => unreachable!(),
-            Either3::Third(_) => { } // Leave the match to drop the &printer ref
+            Either3::Third(_) => {} // Leave the match to drop the &printer ref
         }
 
-            let comp_instance = &printer.0.0;
-            let mut store_handle = printer.0.1.borrow_mut();
-            let stats = comp_instance.interface0.call_return_stats(store_handle.as_context_mut()).unwrap();
-            let different_addr = stats.len();
-            let total_count: u64 = stats.iter().map(|(_, c)| { *c }).sum();
-            info!("Discovered {} different adress over {} packets", different_addr, total_count);
+        let comp_instance = &printer.0.0;
+        let mut store_handle = printer.0.1.borrow_mut();
+        let stats = comp_instance
+            .interface0
+            .call_return_stats(store_handle.as_context_mut())
+            .unwrap();
+        let different_addr = stats.len();
+        let total_count: u64 = stats.iter().map(|(_, c)| *c).sum();
+        info!(
+            "Discovered {} different adress over {} packets",
+            different_addr, total_count
+        );
     }
 }
 
@@ -126,10 +132,14 @@ impl EventHandler for ComponentScanner {
         let comp_instance = &self.0.0;
         let mut store_handle = self.0.1.borrow_mut();
         while let Some(Ok(report)) = it.next() {
-            comp_instance.interface0
-                .call_on_single_report(store_handle.as_context_mut(), BdAddr::new(report.addr.into_inner()))
-                    .unwrap()
-                    .unwrap();
+            comp_instance
+                .interface0
+                .call_on_single_report(
+                    store_handle.as_context_mut(),
+                    BdAddr::new(report.addr.into_inner()),
+                )
+                .unwrap()
+                .unwrap();
         }
     }
 }
