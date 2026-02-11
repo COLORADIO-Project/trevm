@@ -5,7 +5,7 @@ use ariel_os_boards::pins;
 
 use ariel_os::debug::{
     ExitCode, exit,
-    log::{defmt, info},
+    log::{info},
 };
 use ariel_os::gpio::{Input, Level, Output, Pull};
 
@@ -55,7 +55,6 @@ async fn run_wasm(peris: Peripherals) -> wasmtime::Result<()> {
     config.memory_reservation_for_growth(0);
 
     // Options relating to async
-    config.async_support(true);
     config.async_stack_size(4096);
 
     let led1 = Output::new(peris.leds.led0, Level::Low);
@@ -66,7 +65,8 @@ async fn run_wasm(peris: Peripherals) -> wasmtime::Result<()> {
         .unwrap();
 
     let mut host = ArielOSHost::default();
-    host.bind_peris(led1, btn1);
+    host.bind_led(led1);
+    host.bind_button(btn1);
 
     let engine = Engine::new(&config)?;
 

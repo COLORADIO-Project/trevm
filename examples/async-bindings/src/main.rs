@@ -69,7 +69,6 @@ async fn run_wasm() -> wasmtime::Result<()> {
     config.memory_reservation_for_growth(0);
 
     // Async support
-    config.async_support(true);
     config.async_stack_size(4096);
 
     // Fuel

@@ -3,7 +3,7 @@
 
 use ariel_os::debug::{
     ExitCode, exit,
-    log::{defmt, info},
+    log::info,
 };
 use ariel_os::time::Timer;
 
