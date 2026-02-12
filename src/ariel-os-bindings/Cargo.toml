@@ -10,6 +10,8 @@ ariel-os-random = { workspace = true, optional = true }
 ariel-os-embassy = { workspace = true, optional = true }
 ariel-os-alloc = { workspace = true }
 ariel-os-hal = { workspace = true, optional = true }
+ariel-os-sensors = { workspace = true, optional = true }
+ariel-os-sensors-registry = { workspace = true, optional = true }
 
 rand_core = { workspace = true, optional = true }
 
@@ -33,7 +35,7 @@ workspace = true
 [features]
 rng = ["dep:rand_core", "dep:ariel-os-random"]
 udp = ["ariel-os-embassy/udp", "ariel-os-embassy/net", "dep:embassy-futures"]
-time = ["ariel-os-embassy/time", "dep:embassy-futures"]
+time = ["ariel-os-embassy/time", "async"]
 log = ["dep:ariel-os-debug"]
 async = ["wasmtime/async"]
 coap-server-guest = [
@@ -47,3 +49,4 @@ coap-server-guest = [
   "dep:coap-numbers",
 ]
 gpio = ["dep:ariel-os-hal"]
+sensors = ["dep:ariel-os-sensors", "dep:ariel-os-sensors-registry", "dep:embassy-futures"]
