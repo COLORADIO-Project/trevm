@@ -1,128 +1,50 @@
 #![no_main]
 #![no_std]
 
+extern crate alloc;
+
 use ariel_os::coap::coap_run;
-use ariel_os::debug::log::{defmt, error, info};
+use ariel_os::debug::log::info;
 use ariel_os::debug::{ExitCode, exit};
 
 use ariel_os::time::Timer;
-use wasmtime::component::{Component, HasSelf, Linker, bindgen};
+use wasmtime::component::{Component, Linker, bindgen};
 use wasmtime::{Config, Engine, Store};
 
-extern crate alloc;
-use alloc::string::String;
-use alloc::vec::Vec;
+
+
+use coap_handler::Handler;
+use coap_handler_implementations::{
+    HandlerBuilder, ReportingHandlerBuilder, new_dispatcher
+};
 
 use ariel_os_bindings::wasm::coap_server_guest::{
-    CanInstantiate, CoAPError, CoapServerGuest, WasmHandler, WasmHandlerWrapped,
+    CanInstantiate, WasmHandler, WasmHandlerWrapped, CoAPError, EphemeralCapsule,
 };
 
 use ariel_os_bindings::wasm::ArielOSHost;
 
-use coap_handler::Handler;
-use coap_handler_implementations::{HandlerBuilder, ReportingHandlerBuilder};
 
 bindgen!({
-    world: "example-coap-server",
+    world: "example-ephemeral-no-bindings",
     path: "../../wit",
-    with: {
-        "ariel:wasm-bindings/log-api": ariel_os_bindings::wasm::log,
-    }
 });
 
-use crate::exports::ariel::wasm_bindings::coap_server_guest::CoapErr;
-
-impl Into<CoAPError> for CoapErr {
-    fn into(self) -> CoAPError {
-        match self {
-            CoapErr::NotFound => CoAPError::not_found(),
-            CoapErr::InternalServerError => CoAPError::internal_server_error(),
-            CoapErr::HandlerNotBuilt => CoAPError::internal_server_error(),
-            // _ => CoAPError::internal_server_error(),
-        }
-    }
-}
-
-impl CoapServerGuest for ExampleCoapServer {
-    type E = CoapErr;
-    fn coap_run<T: 'static>(
-        &mut self,
-        store: &mut Store<T>,
-        code: u8,
-        observed_len: u32,
-        buffer: Vec<u8>,
-    ) -> Result<(u8, Vec<u8>), Self::E> {
-        match self.ariel_wasm_bindings_coap_server_guest().call_coap_run(
-            store,
-            code,
-            observed_len,
-            &buffer,
-        ) {
-            Ok(coap_rep) => coap_rep,
-            Err(wasm_error) => {
-                error!(
-                    "The capsule has crashed, CoAP requests to it will return 5.00 \n{}",
-                    defmt::Display2Format(&wasm_error)
-                );
-                return Err(CoapErr::InternalServerError);
-            }
-        }
-    }
-
-    fn initialize_handler<T: 'static>(&mut self, store: &mut Store<T>) -> Result<(), ()> {
-        match self
-            .ariel_wasm_bindings_coap_server_guest()
-            .call_initialize_handler(store)
-        {
-            Ok(handler_init_rep) => handler_init_rep,
-            Err(wasm_error) => {
-                error!(
-                    "The capsule has crashed at startup, CoAP requests to it will return 5.00 \n{}",
-                    defmt::Display2Format(&wasm_error)
-                );
-                Err(())
-            }
-        }
-    }
-
-    fn report_resources<T: 'static>(
-        &mut self,
-        store: &mut Store<T>,
-    ) -> Result<Vec<String>, Self::E> {
-        match self
-            .ariel_wasm_bindings_coap_server_guest()
-            .call_report(store)
-        {
-            Ok(handler_init_rep) => handler_init_rep,
-            Err(wasm_error) => {
-                error!(
-                    "The capsule has crashed at startup, CoAP requests to it will return 5.03 \n{}",
-                    defmt::Display2Format(&wasm_error)
-                );
-                Err(CoapErr::HandlerNotBuilt)
-            }
-        }
-    }
-}
-
-impl ExampleCoapServerImports for ArielOSHost {
-    fn uppercase(&mut self, s: String) -> String {
-        info!(
-            "WASM asked us to uppercase {:?}. Maybe we can use hardware acceleration for it?",
-            s.as_str()
-        );
-        s.to_uppercase()
-    }
-}
-
-impl CanInstantiate<ArielOSHost> for ExampleCoapServer {
+impl CanInstantiate<ArielOSHost> for ExampleEphemeralNoBindings {
     fn instantiate(
-        mut linker: &mut Linker<ArielOSHost>,
-        mut store: &mut Store<ArielOSHost>,
-        component: Component,
-    ) -> wasmtime::Result<Self> {
-        ExampleCoapServer::add_to_linker::<_, HasSelf<_>>(&mut linker, |state| state)?;
-        ExampleCoapServer::instantiate(&mut store, &component, &linker)
+            linker: &mut Linker<ArielOSHost>,
+            store: &mut Store<ArielOSHost>,
+            component: Component,
+        ) -> wasmtime::Result<Self> {
+
+        ExampleEphemeralNoBindings::instantiate(store, &component, &linker)
+    }
+}
+
+
+impl EphemeralCapsule<ArielOSHost, u32> for ExampleEphemeralNoBindings {
+    fn run(&mut self, store: &mut Store<ArielOSHost>) -> wasmtime::Result<u32> {
+        self.call_fibonacci(store, 10)
     }
 }
 
@@ -159,33 +81,36 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
     let mut wasmhandler = WasmHandler::new(host);
     // SAFETY: Data in that file was produced by ./precompile_wasm.rs
     unsafe {
-        wasmhandler.start_from_static(wasm, &engine)?;
+        wasmhandler.start_ff_from_static(wasm, &engine)?;
     }
-    let wrapped = WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
-    let handler = wrapped
-        .clone()
-        .to_handler()
+    let wrapped: WasmHandlerWrapped<'_, ArielOSHost, ExampleEphemeralNoBindings> = WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
+    let control = Control {
+                wrapped: wrapped.clone(),
+                engine: &engine,
+    };
+
+    let handler = new_dispatcher()
         .at_with_attributes(
             &["vm-control"],
             &[],
-            Control {
-                wrapped,
-                engine: &engine,
-            },
-        )
-        .with_wkc();
+            control
+        ).with_wkc();
+
     info!("Starting Handler");
     coap_run(handler).await;
+    #[allow(unreachable_code)]
+    Ok(())
 }
 
-struct Control<'w> {
-    wrapped: WasmHandlerWrapped<'w, ArielOSHost, ExampleCoapServer>,
+
+struct Control<'w, G: CanInstantiate<ArielOSHost>> {
+    wrapped: WasmHandlerWrapped<'w, ArielOSHost, G>,
     // FIXME: I'd rather just carry around the wrapped, but apparently there are some pieces we
     // can't just extract from the instance inside again easily (but maybe this should work).
     engine: &'w Engine,
 }
 
-impl<'w> Handler for Control<'w> {
+impl<'w, G: CanInstantiate<ArielOSHost> + EphemeralCapsule<ArielOSHost, u32>> Handler for Control<'w, G> {
     // Block option to respond with, and code
     type RequestData = (Option<u32>, u8);
 
@@ -278,12 +203,12 @@ impl<'w> Handler for Control<'w> {
                     );
 
                     // SAFETY: We trust the user to provide us with checked data
-                    unsafe {
-                        s.start_from_dynamic(self.engine)
+                    let res  = unsafe {
+                        s.start_ff_from_dynamic(self.engine)
                             // FIXME: relay more details?
                             .map_err(|_| CoAPError::bad_request())
                     }?;
-
+                    info!("Capsule returned : {:?}", res);
                     // FIXME if there was no Block1 option at all, can we still send some?
                     Ok((Some(block1), coap_numbers::code::CHANGED))
                 }

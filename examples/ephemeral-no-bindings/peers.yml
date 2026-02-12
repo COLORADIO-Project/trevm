@@ -1,7 +1,6 @@
 - from: unauthenticated
   scope:
     /.well-known/core: GET
-    /vm/example: GET
 
 - kccs: |
     # The CWT Claims Set that needs to be used (by value or by reference) by

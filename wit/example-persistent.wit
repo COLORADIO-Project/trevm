@@ -1,0 +1,13 @@
+package example:example;
+
+world example-persistent-no-bindings {
+    export ariel:wasm-bindings/coap-server-guest@0.0.1;
+}
+
+world example-persistent-with-bindings {
+    import ariel:wasm-bindings/sensors-api@0.0.1;
+    import ariel:wasm-bindings/log-api@0.0.1;
+    import ariel:wasm-bindings/rng-api@0.0.1;
+
+    export ariel:wasm-bindings/coap-server-guest@0.0.1;
+}

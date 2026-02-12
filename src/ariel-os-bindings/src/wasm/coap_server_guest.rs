@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use ariel_os_debug::log::{defmt::Format, info};
+use ariel_os_debug::log::defmt::Format;
 use wasmtime::{
     Store,
     component::{Component, Linker},
@@ -16,12 +16,12 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub trait FireAndForget<T, R>: Sized {
+pub trait EphemeralCapsule<T, R>: Sized {
     /// Runs a function and returns a result
     fn run(&mut self, store: &mut Store<T>) -> wasmtime::Result<R>;
 }
 
-pub trait CoapServerGuest {
+pub trait PersistentCapsule {
     type E: Into<CoAPError>;
     fn coap_run<T: 'static>(
         &mut self,
@@ -42,7 +42,7 @@ pub trait CoapServerGuest {
 /// Glue layer that allows a generic backend to operate on any concrete bindgen type.
 ///
 /// Open questions:
-/// * Could this be part of (or interdependent with) CoapServerGuest?
+/// * Could this be part of (or interdependent with) PersistentCapsule?
 /// * Do we need it to be a trait in the first place? (Maybe all sensible applications that can use
 ///   this module have to use the single bindgen output anyway, and thus all the bindgen could move
 ///   into this module.)
@@ -127,7 +127,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
     ) -> wasmtime::Result<R>
     where
         R: Debug + Format,
-        G: FireAndForget<T, R>,
+        G: EphemeralCapsule<T, R>,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -148,7 +148,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         engine: &wasmtime::Engine,
     ) -> wasmtime::Result<()>
     where
-        G: CoapServerGuest,
+        G: PersistentCapsule,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -165,7 +165,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
     /// to be wasmtime prepared code; arbitrary data may execute arbitrary code).
     pub unsafe fn start_from_dynamic(&mut self, engine: &wasmtime::Engine) -> wasmtime::Result<()>
     where
-        G: CoapServerGuest,
+        G: PersistentCapsule,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -184,7 +184,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
     pub unsafe fn start_ff_from_dynamic<R>(&mut self, engine: &wasmtime::Engine) -> wasmtime::Result<R>
     where
         R: Debug + Format,
-        G: FireAndForget<T, R>,
+        G: EphemeralCapsule<T, R>,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -210,7 +210,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
     ) -> wasmtime::Result<R>
     where
         R: Debug + Format,
-        G: FireAndForget<T, R>,
+        G: EphemeralCapsule<T, R>,
     {
         let WasmHandlerState::NotRunning { store_data } =
             core::mem::replace(&mut self.state, WasmHandlerState::Taken)
@@ -244,7 +244,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         engine: &wasmtime::Engine,
     ) -> wasmtime::Result<()>
     where
-        G: CoapServerGuest
+        G: PersistentCapsule
     {
         let WasmHandlerState::NotRunning { store_data } =
             core::mem::replace(&mut self.state, WasmHandlerState::Taken)
@@ -298,7 +298,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
 #[derive(Debug)]
 pub struct StopFirst;
 
-impl<'w, T: 'static, G: CanInstantiate<T> + CoapServerGuest> WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: CanInstantiate<T> + PersistentCapsule> WasmHandlerWrapped<'w, T, G> {
     pub fn to_handler(self) -> impl Handler + Reporting {
         let handler = new_dispatcher()
             .below(&["vm"], self.clone())
@@ -333,7 +333,7 @@ mod disable_sort_options_bound {
 
 use disable_sort_options_bound::AbleToBeSetFromMessage;
 
-impl<'w, T: 'static, G: CoapServerGuest> Handler for WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: PersistentCapsule> Handler for WasmHandlerWrapped<'w, T, G> {
     // request data is the message replied by the inner handler along it's code
     type RequestData = (u8, Vec<u8>);
 
@@ -410,7 +410,7 @@ impl Record for StringRecord {
     }
 }
 
-impl<'w, T: 'static, G: CoapServerGuest> Reporting for WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: PersistentCapsule> Reporting for WasmHandlerWrapped<'w, T, G> {
     type Record<'a>
         = StringRecord
     where

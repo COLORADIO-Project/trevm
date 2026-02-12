@@ -3,6 +3,10 @@ subdirs:
   - gpio
   - udp-bindings
   - ble-scanner
-  - coap-server-bindings
+  - ephemeral-no-bindings
+  - ephemeral-with-bindings
   - simple-updates
   - insecure-updates
+  - persistent-no-bindings
+  - persistent-with-bindings
+  - fake-sensor

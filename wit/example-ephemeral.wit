@@ -1,0 +1,13 @@
+package example:example;
+
+world example-ephemeral-no-bindings {
+    export fibonacci: func(n: u32) -> u32;
+}
+
+world example-ephemeral-with-bindings {
+    import ariel:wasm-bindings/sensors-api@0.0.1;
+    import ariel:wasm-bindings/log-api@0.0.1;
+    import ariel:wasm-bindings/rng-api@0.0.1;
+
+    export mess-with-temperature: func();
+}
