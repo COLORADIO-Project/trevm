@@ -17,7 +17,7 @@ ariel-os = { workspace = true, features = [
 ariel-os-boards = { workspace = true }
 ariel-os-bindings = { path = "../../src/ariel-os-bindings", default-features = false, features = [
     "log",
-    "sensors",
+    "sensors-async",
     "time",
 ] }
 wasmtime = { workspace = true, default-features = false, features = [

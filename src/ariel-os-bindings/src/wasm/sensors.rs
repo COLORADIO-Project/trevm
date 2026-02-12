@@ -7,10 +7,11 @@ use ariel_os_sensors::{
     Category, Label, MeasurementUnit, Reading as _,
     sensor::{ReadingChannel, ReadingError, Sample, SampleMetadata},
 };
-use ariel_os_sensors_registry::{REGISTRY};
+use ariel_os_sensors_registry::REGISTRY;
 
 use wasmtime::component::bindgen;
 
+#[cfg(feature = "sensors-async")]
 bindgen!({
     world: "ariel:wasm-bindings/sensors@0.0.1",
     path: "../../wit/",
@@ -19,8 +20,127 @@ bindgen!({
     }
 });
 
+#[cfg(not(feature = "sensors-async"))]
+bindgen!({
+    world: "ariel:wasm-bindings/sensors@0.0.1",
+    path: "../../wit/",
+});
+
+#[cfg(not(feature = "sensors-async"))]
+use embassy_futures::block_on;
+
 pub use ariel::wasm_bindings::sensors_api as comp_sensor;
 pub use ariel::wasm_bindings::sensors_api::{Host, HostWithStore, add_to_linker};
+
+impl Host for ArielOSHost {
+    fn trigger_measurements(&mut self, category: Option<comp_sensor::Category>) -> Result<(), ()> {
+        match category {
+            Some(cat) => {
+                for sensor in REGISTRY
+                    .sensors()
+                    .filter(|s| s.categories().contains(&cat.into()))
+                {
+                    if sensor.trigger_measurement().is_err() {
+                        return Err(());
+                    }
+                }
+            }
+            None => {
+                for sensor in REGISTRY.sensors() {
+                    if sensor.trigger_measurement().is_err() {
+                        return Err(());
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(feature = "sensors-async")]
+    async fn wait_for_reading(
+        &mut self,
+        label: Option<comp_sensor::Label>,
+    ) -> Result<Vec<(comp_sensor::Sample, comp_sensor::Channel)>, ()> {
+        let mut results = Vec::new();
+        for sensor in REGISTRY.sensors() {
+            match sensor.wait_for_reading().await {
+                // Sensor could have been filtered out before
+                Err(ReadingError::NotMeasuring) => {
+                    ariel_os_debug::log::debug!(
+                        "Sensor {:?} of categories {:?} wasn't measuring, possibly because it was filtered out before",
+                        sensor.display_name(), sensor.categories()
+                    );
+                    continue;
+                }
+                Ok(samples) => match label {
+                    Some(label) => {
+                        for (reading_channel, sample) in
+                            samples.samples().filter(|(r, _)| r.label() == label.into())
+                        {
+                            results.push((
+                                comp_sensor::Sample::from(sample),
+                                comp_sensor::Channel::from(reading_channel),
+                            ))
+                        }
+                    }
+                    None => {
+                        for (reading_channel, sample) in samples.samples() {
+                            results.push((
+                                comp_sensor::Sample::from(sample),
+                                comp_sensor::Channel::from(reading_channel),
+                            ))
+                        }
+                    }
+                },
+                Err(_error) => return Err(()),
+            }
+        }
+        Ok(results)
+    }
+
+    #[cfg(not(feature = "sensors-async"))]
+    fn wait_for_reading(
+        &mut self,
+        label: Option<comp_sensor::Label>,
+    ) -> Result<Vec<(comp_sensor::Sample, comp_sensor::Channel)>, ()> {
+        let mut results = Vec::new();
+        for sensor in REGISTRY.sensors() {
+            match block_on(sensor.wait_for_reading()) {
+                // Sensor could have been filtered out before
+                Err(ReadingError::NotMeasuring) => {
+                    ariel_os_debug::log::debug!(
+                        "Sensor {:?} of categories {:?} wasn't measuring, possibly because it was filtered out before",
+                        sensor.display_name(), sensor.categories()
+                    );
+                    continue;
+                }
+                Ok(samples) => match label {
+                    Some(label) => {
+                        for (reading_channel, sample) in
+                            samples.samples().filter(|(r, _)| r.label() == label.into())
+                        {
+                            results.push((
+                                comp_sensor::Sample::from(sample),
+                                comp_sensor::Channel::from(reading_channel),
+                            ))
+                        }
+                    }
+                    None => {
+                        for (reading_channel, sample) in samples.samples() {
+                            results.push((
+                                comp_sensor::Sample::from(sample),
+                                comp_sensor::Channel::from(reading_channel),
+                            ))
+                        }
+                    }
+                },
+                Err(_error) => return Err(()),
+            }
+        }
+        Ok(results)
+    }
+}
 
 impl From<Category> for comp_sensor::Category {
     fn from(value: Category) -> Self {
@@ -236,74 +356,5 @@ impl From<ReadingChannel> for comp_sensor::Channel {
             scaling,
             unit: unit.into(),
         }
-    }
-}
-
-use embassy_futures::block_on;
-
-impl Host for ArielOSHost {
-    fn trigger_measurements(&mut self, category: Option<comp_sensor::Category>) -> Result<(), ()> {
-        match category {
-            Some(cat) => {
-                for sensor in REGISTRY
-                    .sensors()
-                    .filter(|s| s.categories().contains(&cat.into()))
-                {
-                    if sensor.trigger_measurement().is_err() {
-                        return Err(());
-                    }
-                }
-            }
-            None => {
-                for sensor in REGISTRY.sensors() {
-                    if sensor.trigger_measurement().is_err() {
-                        return Err(());
-                    }
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    async fn wait_for_reading(
-        &mut self,
-        label: Option<comp_sensor::Label>,
-    ) -> Result<Vec<(comp_sensor::Sample, comp_sensor::Channel)>, ()> {
-        let mut results = Vec::new();
-        for sensor in REGISTRY.sensors() {
-            match sensor.wait_for_reading().await {
-                // Sensor could have been filtered out before
-                Err(ReadingError::NotMeasuring) => {
-                    ariel_os_debug::log::debug!(
-                        "Sensor {:?} of categories {:?} wasn't measuring, possibly because it was filtered out before",
-                        sensor.display_name(), sensor.categories()
-                    );
-                    continue;
-                }
-                Ok(samples) => match label {
-                    Some(label) => {
-                        for (reading_channel, sample) in
-                            samples.samples().filter(|(r, _)| r.label() == label.into())
-                        {
-                            results.push((
-                                comp_sensor::Sample::from(sample),
-                                comp_sensor::Channel::from(reading_channel),
-                            ))
-                        }
-                    }
-                    None => {
-                        for (reading_channel, sample) in samples.samples() {
-                            results.push((
-                                comp_sensor::Sample::from(sample),
-                                comp_sensor::Channel::from(reading_channel),
-                            ))
-                        }
-                    }
-                },
-                Err(_error) => return Err(()),
-            }
-        }
-        Ok(results)
     }
 }
