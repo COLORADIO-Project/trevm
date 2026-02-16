@@ -11,7 +11,7 @@ workspace = true
 ariel-os = { workspace = true, features = ["coap"] }
 
 ariel-os-bindings = { path = "../../src/ariel-os-bindings", features = [
-  "coap-server-guest",
+  "coap",
 ] }
 
 embedded-nal-coap = "=0.1.0-alpha.5"

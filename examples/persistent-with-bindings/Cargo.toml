@@ -11,7 +11,7 @@ workspace = true
 ariel-os = { workspace = true, features = ["coap", "sensors", "random"] }
 
 ariel-os-bindings = { path = "../../src/ariel-os-bindings", features = [
-  "coap-server-guest",
+  "coap",
   "log",
   "rng",
   "sensors",
