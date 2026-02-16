@@ -16,45 +16,11 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub trait EphemeralCapsule<T, R>: Sized {
-    /// Runs a function and returns a result
-    fn run(&mut self, store: &mut Store<T>) -> wasmtime::Result<R>;
-}
-
-pub trait PersistentCapsule {
-    type E: Into<CoAPError>;
-    fn coap_run<T: 'static>(
-        &mut self,
-        store: &mut Store<T>,
-        code: u8,
-        observed_len: u32,
-        message: Vec<u8>,
-    ) -> Result<(u8, Vec<u8>), Self::E>;
-
-    fn initialize_handler<T: 'static>(&mut self, store: &mut Store<T>) -> Result<(), ()>;
-
-    fn report_resources<T: 'static>(
-        &mut self,
-        store: &mut Store<T>,
-    ) -> Result<Vec<String>, Self::E>;
-}
-
-/// Glue layer that allows a generic backend to operate on any concrete bindgen type.
-///
-/// Open questions:
-/// * Could this be part of (or interdependent with) PersistentCapsule?
-/// * Do we need it to be a trait in the first place? (Maybe all sensible applications that can use
-///   this module have to use the single bindgen output anyway, and thus all the bindgen could move
-///   into this module.)
-pub trait CanInstantiate<T>: Sized {
-    /// Runs Self::add_to_linker and Self::instantiate (which are bindgen generated methods without
-    /// a type)
-    fn instantiate(
-        linker: &mut Linker<T>,
-        store: &mut Store<T>,
-        component: Component,
-    ) -> wasmtime::Result<Self>;
-}
+pub use super::coap_traits::{
+    PersistentCapsule,
+    CanInstantiate,
+    EphemeralCapsule
+};
 
 enum WasmHandlerState<T: 'static, G> {
     Running { store: Store<T>, instance: G },
@@ -146,7 +112,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         engine: &wasmtime::Engine,
     ) -> wasmtime::Result<()>
     where
-        G: PersistentCapsule,
+        G: PersistentCapsule<T>,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -162,7 +128,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
     /// to be wasmtime prepared code; arbitrary data may execute arbitrary code).
     pub unsafe fn start_from_dynamic(&mut self, engine: &wasmtime::Engine) -> wasmtime::Result<()>
     where
-        G: PersistentCapsule,
+        G: PersistentCapsule<T>,
     {
         // SAFETY:
         // * The requirement on code content is forwarded.
@@ -244,7 +210,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         engine: &wasmtime::Engine,
     ) -> wasmtime::Result<()>
     where
-        G: PersistentCapsule,
+        G: PersistentCapsule<T>,
     {
         let WasmHandlerState::NotRunning { store_data } =
             core::mem::replace(&mut self.state, WasmHandlerState::Taken)
@@ -298,7 +264,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
 #[derive(Debug)]
 pub struct StopFirst;
 
-impl<'w, T: 'static, G: CanInstantiate<T> + PersistentCapsule> WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: PersistentCapsule<T>> WasmHandlerWrapped<'w, T, G> {
     pub fn to_handler(self) -> impl Handler + Reporting {
         let handler = new_dispatcher()
             .below(&["vm"], self.clone())
@@ -333,7 +299,7 @@ mod disable_sort_options_bound {
 
 use disable_sort_options_bound::AbleToBeSetFromMessage;
 
-impl<'w, T: 'static, G: PersistentCapsule> Handler for WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: PersistentCapsule<T>> Handler for WasmHandlerWrapped<'w, T, G> {
     // request data is the message replied by the inner handler along it's code
     type RequestData = (u8, Vec<u8>);
 
@@ -410,7 +376,7 @@ impl Record for StringRecord {
     }
 }
 
-impl<'w, T: 'static, G: PersistentCapsule> Reporting for WasmHandlerWrapped<'w, T, G> {
+impl<'w, T: 'static, G: PersistentCapsule<T>> Reporting for WasmHandlerWrapped<'w, T, G> {
     type Record<'a>
         = StringRecord
     where
