@@ -3,25 +3,21 @@
 
 extern crate alloc;
 
-use alloc::{vec::Vec, string::String};
+use alloc::{string::String, vec::Vec};
 
 use ariel_os::coap::coap_run;
-use ariel_os::debug::log::{info, error};
+use ariel_os::debug::log::{error, info};
 use ariel_os::debug::{ExitCode, exit};
 
 use ariel_os::time::Timer;
 use wasmtime::component::{Component, Linker, bindgen};
 use wasmtime::{Config, Engine, Store};
 
-
-
 use coap_handler::Handler;
-use coap_handler_implementations::{
-    HandlerBuilder, ReportingHandlerBuilder
-};
+use coap_handler_implementations::{HandlerBuilder, ReportingHandlerBuilder};
 
 use ariel_os_bindings::wasm::coap_server_guest::{
-    CanInstantiate, WasmHandler, WasmHandlerWrapped, CoAPError, PersistentCapsule,
+    CanInstantiate, CoAPError, PersistentCapsule, WasmHandler, WasmHandlerWrapped,
 };
 
 use ariel_os_bindings::wasm::ArielOSHost;
@@ -30,7 +26,6 @@ bindgen!({
     world: "example-persistent-no-bindings",
     path: "../../wit",
 });
-
 
 use crate::exports::ariel::wasm_bindings::coap_server_guest::CoapErr;
 
@@ -47,11 +42,10 @@ impl Into<CoAPError> for CoapErr {
 
 impl CanInstantiate<ArielOSHost> for ExamplePersistentNoBindings {
     fn instantiate(
-            linker: &mut Linker<ArielOSHost>,
-            store: &mut Store<ArielOSHost>,
-            component: Component,
-        ) -> wasmtime::Result<Self> {
-
+        linker: &mut Linker<ArielOSHost>,
+        store: &mut Store<ArielOSHost>,
+        component: Component,
+    ) -> wasmtime::Result<Self> {
         ExamplePersistentNoBindings::instantiate(store, &component, &linker)
     }
 }
@@ -153,18 +147,17 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
     unsafe {
         wasmhandler.start_from_static(wasm, &engine)?;
     }
-    let wrapped: WasmHandlerWrapped<'_, ArielOSHost, ExamplePersistentNoBindings> = WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
+    let wrapped: WasmHandlerWrapped<'_, ArielOSHost, ExamplePersistentNoBindings> =
+        WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
     let control = Control {
-                wrapped: wrapped.clone(),
-                engine: &engine,
+        wrapped: wrapped.clone(),
+        engine: &engine,
     };
 
-    let handler = wrapped.to_handler()
-        .at_with_attributes(
-            &["vm-control"],
-            &[],
-            control
-        ).with_wkc();
+    let handler = wrapped
+        .to_handler()
+        .at_with_attributes(&["vm-control"], &[], control)
+        .with_wkc();
 
     info!("Starting Handler");
     coap_run(handler).await;

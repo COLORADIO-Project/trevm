@@ -94,9 +94,7 @@ pub struct WasmHandler<T: 'static, G> {
     program: Vec<u8>,
 }
 
-pub struct WasmHandlerWrapped<'w, T: 'static, G>(
-    pub &'w core::cell::RefCell<WasmHandler<T, G>>,
-);
+pub struct WasmHandlerWrapped<'w, T: 'static, G>(pub &'w core::cell::RefCell<WasmHandler<T, G>>);
 
 impl<'w, T: 'static, G> Clone for WasmHandlerWrapped<'w, T, G> {
     fn clone(&self) -> Self {
@@ -156,7 +154,6 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         unsafe { self.start_raw(wasm.into(), engine) }
     }
 
-
     /// Start running a CoAP server from data that has been prepared in `.program`.
     ///
     /// # Safety
@@ -174,14 +171,16 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         unsafe { self.start_raw(self.program.as_slice().into(), engine) }
     }
 
-
     /// Start running a CoAP server from data that has been prepared in `.program`.
     ///
     /// # Safety
     ///
     /// The requirements of [`wasmtime::Component::deserialize`] apply. (Paraphrasing: This needs
     /// to be wasmtime prepared code; arbitrary data may execute arbitrary code).
-    pub unsafe fn start_ff_from_dynamic<R>(&mut self, engine: &wasmtime::Engine) -> wasmtime::Result<R>
+    pub unsafe fn start_ff_from_dynamic<R>(
+        &mut self,
+        engine: &wasmtime::Engine,
+    ) -> wasmtime::Result<R>
     where
         R: Debug + Format,
         G: EphemeralCapsule<T, R>,
@@ -192,7 +191,6 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         //   program is not mutated while running.
         unsafe { self.start_ff_raw(self.program.as_slice().into(), engine) }
     }
-
 
     /// Starts running a CoAP server from a provided instance.
     ///
@@ -225,8 +223,10 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         let mut instance = G::instantiate(&mut linker, &mut store, component)?;
 
         let result = instance.run(&mut store);
-        self.state = WasmHandlerState::NotRunning { store_data: store.into_data() };
-        return result
+        self.state = WasmHandlerState::NotRunning {
+            store_data: store.into_data(),
+        };
+        return result;
     }
 
     /// Starts running a CoAP server from a provided instance.
@@ -244,7 +244,7 @@ impl<T: 'static, G: CanInstantiate<T>> WasmHandler<T, G> {
         engine: &wasmtime::Engine,
     ) -> wasmtime::Result<()>
     where
-        G: PersistentCapsule
+        G: PersistentCapsule,
     {
         let WasmHandlerState::NotRunning { store_data } =
             core::mem::replace(&mut self.state, WasmHandlerState::Taken)

@@ -69,7 +69,8 @@ impl Host for ArielOSHost {
                 Err(ReadingError::NotMeasuring) => {
                     ariel_os_debug::log::debug!(
                         "Sensor {:?} of categories {:?} wasn't measuring, possibly because it was filtered out before",
-                        sensor.display_name(), sensor.categories()
+                        sensor.display_name(),
+                        sensor.categories()
                     );
                     continue;
                 }
@@ -111,7 +112,8 @@ impl Host for ArielOSHost {
                 Err(ReadingError::NotMeasuring) => {
                     ariel_os_debug::log::debug!(
                         "Sensor {:?} of categories {:?} wasn't measuring, possibly because it was filtered out before",
-                        sensor.display_name(), sensor.categories()
+                        sensor.display_name(),
+                        sensor.categories()
                     );
                     continue;
                 }

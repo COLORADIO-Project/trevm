@@ -11,19 +11,14 @@ use ariel_os::time::Timer;
 use wasmtime::component::{Component, Linker, bindgen};
 use wasmtime::{Config, Engine, Store};
 
-
-
 use coap_handler::Handler;
-use coap_handler_implementations::{
-    HandlerBuilder, ReportingHandlerBuilder, new_dispatcher
-};
+use coap_handler_implementations::{HandlerBuilder, ReportingHandlerBuilder, new_dispatcher};
 
 use ariel_os_bindings::wasm::coap_server_guest::{
-    CanInstantiate, WasmHandler, WasmHandlerWrapped, CoAPError, EphemeralCapsule,
+    CanInstantiate, CoAPError, EphemeralCapsule, WasmHandler, WasmHandlerWrapped,
 };
 
 use ariel_os_bindings::wasm::ArielOSHost;
-
 
 bindgen!({
     world: "example-ephemeral-no-bindings",
@@ -32,15 +27,13 @@ bindgen!({
 
 impl CanInstantiate<ArielOSHost> for ExampleEphemeralNoBindings {
     fn instantiate(
-            linker: &mut Linker<ArielOSHost>,
-            store: &mut Store<ArielOSHost>,
-            component: Component,
-        ) -> wasmtime::Result<Self> {
-
+        linker: &mut Linker<ArielOSHost>,
+        store: &mut Store<ArielOSHost>,
+        component: Component,
+    ) -> wasmtime::Result<Self> {
         ExampleEphemeralNoBindings::instantiate(store, &component, &linker)
     }
 }
-
 
 impl EphemeralCapsule<ArielOSHost, u32> for ExampleEphemeralNoBindings {
     fn run(&mut self, store: &mut Store<ArielOSHost>) -> wasmtime::Result<u32> {
@@ -83,25 +76,22 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
     unsafe {
         wasmhandler.start_ff_from_static(wasm, &engine)?;
     }
-    let wrapped: WasmHandlerWrapped<'_, ArielOSHost, ExampleEphemeralNoBindings> = WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
+    let wrapped: WasmHandlerWrapped<'_, ArielOSHost, ExampleEphemeralNoBindings> =
+        WasmHandlerWrapped(&core::cell::RefCell::new(wasmhandler));
     let control = Control {
-                wrapped: wrapped.clone(),
-                engine: &engine,
+        wrapped: wrapped.clone(),
+        engine: &engine,
     };
 
     let handler = new_dispatcher()
-        .at_with_attributes(
-            &["vm-control"],
-            &[],
-            control
-        ).with_wkc();
+        .at_with_attributes(&["vm-control"], &[], control)
+        .with_wkc();
 
     info!("Starting Handler");
     coap_run(handler).await;
     #[allow(unreachable_code)]
     Ok(())
 }
-
 
 struct Control<'w, G: CanInstantiate<ArielOSHost>> {
     wrapped: WasmHandlerWrapped<'w, ArielOSHost, G>,
@@ -110,7 +100,9 @@ struct Control<'w, G: CanInstantiate<ArielOSHost>> {
     engine: &'w Engine,
 }
 
-impl<'w, G: CanInstantiate<ArielOSHost> + EphemeralCapsule<ArielOSHost, u32>> Handler for Control<'w, G> {
+impl<'w, G: CanInstantiate<ArielOSHost> + EphemeralCapsule<ArielOSHost, u32>> Handler
+    for Control<'w, G>
+{
     // Block option to respond with, and code
     type RequestData = (Option<u32>, u8);
 
@@ -203,7 +195,7 @@ impl<'w, G: CanInstantiate<ArielOSHost> + EphemeralCapsule<ArielOSHost, u32>> Ha
                     );
 
                     // SAFETY: We trust the user to provide us with checked data
-                    let res  = unsafe {
+                    let res = unsafe {
                         s.start_ff_from_dynamic(self.engine)
                             // FIXME: relay more details?
                             .map_err(|_| CoAPError::bad_request())

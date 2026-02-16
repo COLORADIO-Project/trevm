@@ -104,7 +104,8 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
             },
             Timer::after_secs(5),
         )
-        .await {
+        .await
+        {
             Either3::First(_) => unreachable!(),
             Either3::Second(_) => unreachable!(),
             Either3::Third(_) => {} // Leave the match to drop the &printer ref
