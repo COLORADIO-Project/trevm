@@ -50,5 +50,9 @@ coap-server-guest = [
   "dep:ariel-os-debug",
 ]
 gpio = ["dep:ariel-os-hal"]
-sensors = ["dep:ariel-os-sensors", "dep:ariel-os-sensors-registry", "dep:embassy-futures"]
+sensors = [
+  "dep:ariel-os-sensors",
+  "dep:ariel-os-sensors-registry",
+  "dep:embassy-futures",
+]
 sensors-async = ["sensors", "async"]

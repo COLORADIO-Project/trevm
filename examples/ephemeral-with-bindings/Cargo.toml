@@ -34,4 +34,4 @@ wasmtime = { workspace = true, default-features = false, features = [
   "async",
 ] }
 
-rand_core = {workspace = true }
+rand_core = { workspace = true }

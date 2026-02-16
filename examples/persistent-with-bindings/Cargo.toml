@@ -33,4 +33,4 @@ wasmtime = { workspace = true, default-features = false, features = [
   "component-model",
 ] }
 
-rand_core = {workspace = true }
+rand_core = { workspace = true }

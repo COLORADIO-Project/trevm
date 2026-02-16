@@ -9,21 +9,21 @@ workspace = true
 
 [dependencies]
 ariel-os = { workspace = true, features = [
-    "time",
-    "alloc",
-    "sensors",
-    "random",
+  "time",
+  "alloc",
+  "sensors",
+  "random",
 ] }
 ariel-os-boards = { workspace = true }
 ariel-os-bindings = { path = "../../src/ariel-os-bindings", default-features = false, features = [
-    "log",
-    "sensors-async",
-    "time",
+  "log",
+  "sensors-async",
+  "time",
 ] }
 wasmtime = { workspace = true, default-features = false, features = [
-    "runtime",
-    "pulley",
-    "component-model",
+  "runtime",
+  "pulley",
+  "component-model",
 ] }
 
-rand_core = {workspace = true }
+rand_core = { workspace = true }
