@@ -38,7 +38,7 @@ udp = ["ariel-os-embassy/udp", "ariel-os-embassy/net", "dep:embassy-futures"]
 time = ["ariel-os-embassy/time", "async"]
 log = ["dep:ariel-os-debug"]
 async = ["wasmtime/async"]
-coap-server-guest = [
+coap = [
   "dep:coap-message",
   "dep:coap-message-implementations",
   "dep:coap-message-utils",
