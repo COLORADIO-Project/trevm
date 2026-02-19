@@ -1,14 +1,10 @@
 extern crate alloc;
-use alloc::{
-    vec::Vec,
-    string::String
-};
+use alloc::{string::String, vec::Vec};
 
-use wasmtime::{Store, Result as wasm_result};
 use wasmtime::component::{Component, Linker};
+use wasmtime::{Result as wasm_result, Store};
 
 pub use coap_message_utils::Error as CoAPError;
-
 
 pub trait EphemeralCapsule<T, R>: CanInstantiate<T> {
     /// Runs a function and returns a result
@@ -27,10 +23,7 @@ pub trait PersistentCapsule<T>: CanInstantiate<T> {
 
     fn initialize_handler(&mut self, store: &mut Store<T>) -> wasm_result<()>;
 
-    fn report_resources(
-        &mut self,
-        store: &mut Store<T>,
-    ) -> Result<Vec<String>, Self::E>;
+    fn report_resources(&mut self, store: &mut Store<T>) -> Result<Vec<String>, Self::E>;
 }
 
 /// Glue layer that allows a generic backend to operate on any concrete bindgen type.
@@ -47,5 +40,7 @@ pub trait CanInstantiate<T> {
         linker: &mut Linker<T>,
         store: &mut Store<T>,
         component: Component,
-    ) -> wasm_result<Self> where Self: Sized;
+    ) -> wasm_result<Self>
+    where
+        Self: Sized;
 }
