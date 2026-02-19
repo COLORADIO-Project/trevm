@@ -16,11 +16,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub use super::coap_traits::{
-    PersistentCapsule,
-    CanInstantiate,
-    EphemeralCapsule
-};
+pub use super::coap_traits::{CanInstantiate, EphemeralCapsule, PersistentCapsule};
 
 enum WasmHandlerState<T: 'static, G> {
     Running { store: Store<T>, instance: G },
