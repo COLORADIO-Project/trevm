@@ -1,0 +1,36 @@
+[package]
+name = "mpu"
+license.workspace = true
+edition.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ariel-os = { workspace = true, features = [
+  "time",
+  "alloc",
+  "sensors",
+  "random",
+  "i2c"
+] }
+ariel-os-boards = { workspace = true }
+ariel-os-bindings = { path = "../../src/ariel-os-bindings", default-features = false, features = [
+  "log",
+  "sensors-async",
+  "time",
+] }
+
+wasmtime = { workspace = true, default-features = false, features = [
+  "runtime",
+  "pulley", "component-model"] }
+
+ariel-os-sensor-mpu6050 = { path = "../../build/imports/ariel-os/src/sensors/ariel-os-sensor-mpu6050/" }
+once_cell = { version = "1.21.3", default-features = false, features = [
+  "critical-section",
+] }
+
+embassy-sync = { version = "0.7.2" }
+
+rand_core = { workspace = true }

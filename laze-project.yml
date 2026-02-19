@@ -1,7 +1,7 @@
 imports:
   - git:
-      url: https://github.com/ariel-os/ariel-os
-      branch: main
+      url: https://github.com/COLORADIO-Project/ariel-os
+      branch: mpu6050-driver
     dldir: ariel-os
 
 
