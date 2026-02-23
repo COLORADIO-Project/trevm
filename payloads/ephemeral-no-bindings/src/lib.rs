@@ -20,15 +20,18 @@ pub struct MyComponent;
 
 impl Guest for MyComponent {
     fn fibonacci(n: u32) -> u32 {
-        if n == 0 { return 0; }
-        else if n == 1 { return 1; }
+        if n == 0 {
+            return 0;
+        } else if n == 1 {
+            return 1;
+        }
         let mut f_0 = 0;
         let mut f_1 = 1;
         for _ in 2..=n {
             f_1 += f_0;
             f_0 = f_1 - f_0;
         }
-        return f_1
+        return f_1;
     }
 }
 

@@ -101,9 +101,7 @@ fn initialize_handler() -> Result<(), ()> {
         mut h if h.is_none() => {
             *h = Some(build_handler());
         }
-        _ => {
-
-        }
+        _ => {}
     }
     Ok(())
 }
@@ -119,7 +117,12 @@ impl SimpleRenderable for FiboTenth {
 
 impl SimpleRenderable for FiboTwenty {
     fn render<W: core::fmt::Write>(&mut self, writer: &mut W) {
-        write!(writer, "The twentieth Fibonacci number is {}", fibonacci(20)).unwrap()
+        write!(
+            writer,
+            "The twentieth Fibonacci number is {}",
+            fibonacci(20)
+        )
+        .unwrap()
     }
 }
 
@@ -152,15 +155,18 @@ fn report_resource() -> Result<Vec<String>, CoapErr> {
 }
 
 fn fibonacci(n: u32) -> u32 {
-    if n == 0 { return 0; }
-    else if n == 1 { return 1; }
+    if n == 0 {
+        return 0;
+    } else if n == 1 {
+        return 1;
+    }
     let mut f_0 = 0;
     let mut f_1 = 1;
     for _ in 2..=n {
         f_1 += f_0;
         f_0 = f_1 - f_0;
     }
-    return f_1
+    return f_1;
 }
 
 export!(MyComponent);

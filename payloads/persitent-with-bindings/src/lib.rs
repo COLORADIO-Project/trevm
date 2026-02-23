@@ -12,9 +12,9 @@ use coap_message_implementations::inmemory::Message;
 use coap_message_implementations::inmemory_write::GenericMessage;
 
 extern crate alloc;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
 
 #[global_allocator]
 static ALLOCATOR: talc::Talck<talc::locking::AssumeUnlockable, talc::ClaimOnOom> = {
@@ -32,9 +32,8 @@ generate!({
 });
 
 use ariel::wasm_bindings::log_api::info;
-use ariel::wasm_bindings::sensors_api::*;
 use ariel::wasm_bindings::rng_api::RNG;
-
+use ariel::wasm_bindings::sensors_api::*;
 
 struct SendCell<T>(RefCell<T>);
 
@@ -107,9 +106,7 @@ fn initialize_handler() -> Result<(), ()> {
         mut h if h.is_none() => {
             *h = Some(build_handler());
         }
-        _ => {
-
-        }
+        _ => {}
     }
     Ok(())
 }
@@ -122,11 +119,8 @@ impl SimpleRenderable for LogTemp {
     }
 }
 
-
-
 fn build_handler() -> impl Handler + Reporting {
-    new_dispatcher()
-        .at(&["temperature_sensor"], SimpleRendered(LogTemp))
+    new_dispatcher().at(&["temperature_sensor"], SimpleRendered(LogTemp))
 }
 
 fn report_resource() -> Result<Vec<String>, CoapErr> {
@@ -153,17 +147,19 @@ fn report_resource() -> Result<Vec<String>, CoapErr> {
 
 fn mess_with_temperature() -> String {
     trigger_measurements(Some(Category::Temperature)).unwrap();
-    let (sample, reading_channel) = wait_for_reading(Some(Label::Temperature)).unwrap().into_iter().next().unwrap();
+    let (sample, reading_channel) = wait_for_reading(Some(Label::Temperature))
+        .unwrap()
+        .into_iter()
+        .next()
+        .unwrap();
     match reading_channel.label {
         Label::Temperature => {}
         _ => unreachable!(),
     }
     return log_messed_with_measure(sample, reading_channel);
-
 }
 
 fn log_messed_with_measure(sample: Sample, reading_channel: Channel) -> String {
-
     let mut value = sample.value;
 
     // Adding a random noise up to 100
@@ -183,12 +179,14 @@ fn log_messed_with_measure(sample: Sample, reading_channel: Channel) -> String {
         (value as i32 * 10_i32.pow(scaling as u32), 0)
     };
 
-
-
     match sample.metadata {
-        SampleMetadata::UnknownAccuracy |
-        SampleMetadata::NoMeasurementError => {
-            let str_to_log = format!("[Sensor] {}.{}{}", integer_part, decimal_part, reading_channel.unit.to_str());
+        SampleMetadata::UnknownAccuracy | SampleMetadata::NoMeasurementError => {
+            let str_to_log = format!(
+                "[Sensor] {}.{}{}",
+                integer_part,
+                decimal_part,
+                reading_channel.unit.to_str()
+            );
             info(&str_to_log);
             return str_to_log;
         }
@@ -207,24 +205,26 @@ fn log_messed_with_measure(sample: Sample, reading_channel: Channel) -> String {
             } else {
                 // Just multiply
                 (
-                    minus_dev as i32 * 10_i32.pow(scaling as u32), 0,
-                    plus_dev as i32 * 10_i32.pow(scaling as u32), 0,
+                    minus_dev as i32 * 10_i32.pow(scaling as u32),
+                    0,
+                    plus_dev as i32 * 10_i32.pow(scaling as u32),
+                    0,
                 )
             };
 
             let str_to_log = format!(
-                    "[Sensor] {}.{} +{}.{} -{}.{} {}",
-                    integer_part,
-                    decimal_part,
-                    p_int,
-                    p_part,
-                    m_int,
-                    m_part,
-                    reading_channel.unit.to_str(),
-                );
+                "[Sensor] {}.{} +{}.{} -{}.{} {}",
+                integer_part,
+                decimal_part,
+                p_int,
+                p_part,
+                m_int,
+                m_part,
+                reading_channel.unit.to_str(),
+            );
             info(&str_to_log);
             return str_to_log;
-        },
+        }
         _ => {
             let str_to_log = String::from("[Sensor] Error in the reading");
             info(&str_to_log);
@@ -241,7 +241,6 @@ impl MeasurementUnit {
         }
     }
 }
-
 
 export!(MyComponent);
 

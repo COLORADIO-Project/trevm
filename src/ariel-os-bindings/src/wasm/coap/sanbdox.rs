@@ -163,7 +163,7 @@ impl<'a, T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Sandbox<'a, 
             &["sandbox-instructions"],
             SimpleRendered(
                 "PUT your wasm code as /sandbox/path/ and later GET the same URI to run the code",
-            )
+            ),
         )
     }
 }
@@ -219,7 +219,7 @@ impl<T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Handler for Sand
         };
         // I don't want to deal with empty path
         if path.is_empty() {
-            return Err(CoAPError::forbidden())
+            return Err(CoAPError::forbidden());
         }
 
         match request.code().into() {
@@ -272,7 +272,9 @@ impl<T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Handler for Sand
                 Err(SandboxError::WebAssembly) => Err(CoAPError::internal_server_error()),
                 Ok(r) => Ok(r),
             }?;
-            block2_write(block2, response, |w| write!(w, "{:?}", result).map_err(|_| CoAPError::internal_server_error()))?;
+            block2_write(block2, response, |w| {
+                write!(w, "{:?}", result).map_err(|_| CoAPError::internal_server_error())
+            })?;
         }
         Ok(())
     }

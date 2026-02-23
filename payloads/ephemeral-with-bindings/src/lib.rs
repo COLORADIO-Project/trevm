@@ -19,8 +19,8 @@ generate!({
 });
 
 use ariel::wasm_bindings::log_api::info;
-use ariel::wasm_bindings::sensors_api::*;
 use ariel::wasm_bindings::rng_api::RNG;
+use ariel::wasm_bindings::sensors_api::*;
 
 pub struct MyComponent;
 
@@ -30,7 +30,7 @@ impl Guest for MyComponent {
         for (sample, reading_channel) in wait_for_reading(Some(Label::Temperature)).unwrap() {
             match reading_channel.label {
                 Label::Temperature => {}
-                _ => unreachable!()
+                _ => unreachable!(),
             }
             log_messed_with_measure(sample, reading_channel);
         }
@@ -38,12 +38,11 @@ impl Guest for MyComponent {
 }
 
 fn log_messed_with_measure(sample: Sample, reading_channel: Channel) {
-
     let mut value = sample.value;
 
     // Adding a random noise up to 100
     let noise = RNG::next_u32() % 100;
-    value = value+ noise as i32;
+    value = value + noise as i32;
 
     let scaling = reading_channel.scaling;
 
@@ -58,16 +57,13 @@ fn log_messed_with_measure(sample: Sample, reading_channel: Channel) {
         (value as i32 * 10_i32.pow(scaling as u32), 0)
     };
 
-
-
-
     match sample.metadata {
-        SampleMetadata::UnknownAccuracy |
-        SampleMetadata::NoMeasurementError => {
-            info(
-                &format!("[Sensor] {}.{}{}", integer_part, decimal_part, reading_channel.unit.to_str())
-            )
-        }
+        SampleMetadata::UnknownAccuracy | SampleMetadata::NoMeasurementError => info(&format!(
+            "[Sensor] {}.{}{}",
+            integer_part,
+            decimal_part,
+            reading_channel.unit.to_str()
+        )),
         SampleMetadata::SymmetricalError((dev, bias, error_scaling)) => {
             let minus_dev = bias as i32 - dev as i32;
             let plus_dev = bias as i32 + dev as i32;
@@ -83,24 +79,24 @@ fn log_messed_with_measure(sample: Sample, reading_channel: Channel) {
             } else {
                 // Just multiply
                 (
-                    minus_dev as i32 * 10_i32.pow(scaling as u32), 0,
-                    plus_dev as i32 * 10_i32.pow(scaling as u32), 0,
+                    minus_dev as i32 * 10_i32.pow(scaling as u32),
+                    0,
+                    plus_dev as i32 * 10_i32.pow(scaling as u32),
+                    0,
                 )
             };
 
-            info(
-                &format!(
-                    "[Sensor] {}.{} +{}.{} -{}.{} {}",
-                    integer_part,
-                    decimal_part,
-                    p_int,
-                    p_part,
-                    m_int,
-                    m_part,
-                    reading_channel.unit.to_str(),
-                )
-            )
-        },
+            info(&format!(
+                "[Sensor] {}.{} +{}.{} -{}.{} {}",
+                integer_part,
+                decimal_part,
+                p_int,
+                p_part,
+                m_int,
+                m_part,
+                reading_channel.unit.to_str(),
+            ))
+        }
         _ => {
             info("[Sensor] Error in the reading");
         }
@@ -115,7 +111,6 @@ impl MeasurementUnit {
         }
     }
 }
-
 
 export!(MyComponent);
 
