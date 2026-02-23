@@ -12,7 +12,7 @@ use ariel_os::time::Timer;
 use wasmtime::component::{Component, Linker, bindgen};
 use wasmtime::{Config, Engine, Store};
 
-use coap_handler_implementations::ReportingHandlerBuilder;
+use coap_handler_implementations::{ReportingHandlerBuilder, new_dispatcher};
 
 use ariel_os_bindings::wasm::coap::{
     CanInstantiate, EphemeralCapsule,
@@ -70,7 +70,7 @@ async fn run_wasm_coap_server() -> wasmtime::Result<()> {
 
     let sandbox: Sandbox<'_, ArielOSHost, String, ExampleSandboxNoBindings> = Sandbox::new(&engine);
 
-    let handler = sandbox.to_handler().with_wkc();
+    let handler = sandbox.to_handler(new_dispatcher()).with_wkc();
 
     info!("Starting Handler");
     coap_run(handler).await;

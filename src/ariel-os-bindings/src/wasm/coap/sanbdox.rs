@@ -11,7 +11,7 @@ use ariel_os_debug::log::info;
 use coap_handler::{Handler, Reporting};
 
 use coap_handler_implementations::helpers::block2_write;
-use coap_handler_implementations::{HandlerBuilder, SimpleRendered, new_dispatcher};
+use coap_handler_implementations::{HandlerBuilder, SimpleRendered};
 
 use coap_message::MessageOption;
 
@@ -158,12 +158,12 @@ impl<'a, T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Sandbox<'a, 
         }
     }
 
-    pub fn to_handler(self) -> impl Handler + Reporting {
-        new_dispatcher().below(&["sandbox"], self).at(
+    pub fn to_handler(self, base: impl Handler + Reporting) -> impl Handler + Reporting {
+        base.below(&["sandbox"], self).at(
             &["sandbox-instructions"],
             SimpleRendered(
                 "PUT your wasm code as /sandbox/path/ and later GET the same URI to run the code",
-            ),
+            )
         )
     }
 }
