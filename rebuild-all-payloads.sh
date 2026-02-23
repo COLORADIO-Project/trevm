@@ -3,7 +3,7 @@
 set -e
 
 
-for p in coap-server-bindings gpio udp-bindings
+for p in ble-scanner ephemeral-no-bindings ephemeral-with-bindings gpio persistent-no-bindings persistent-with-bindings udp-bindings
 do
     ./precompile_wasm.rs --path payloads/${p}/Cargo.toml -o ./examples/${p}/payload.cwasm --config payloads/.cargo/config.toml
 done
@@ -16,3 +16,5 @@ done
 ./precompile_wasm.rs --path payloads/simple-updates-2/Cargo.toml -o ./examples/simple-updates/payload2.cwasm --config payloads/.cargo/config.toml
 
 cp examples/simple-updates/*.cwasm examples/insecure-updates/
+
+./precompile_wasm.rs --path payloads/sensors/Cargo.toml -o examples/fake-sensor/payload.cwasm --config payloads/.cargo/config.toml
