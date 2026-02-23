@@ -12,11 +12,10 @@ use ariel_os::time::Timer;
 use wasmtime::component::{Component, Linker, bindgen};
 use wasmtime::{Config, Engine, Store};
 
-use coap_handler::Handler;
-use coap_handler_implementations::{HandlerBuilder, ReportingHandlerBuilder, new_dispatcher};
+use coap_handler_implementations::ReportingHandlerBuilder;
 
 use ariel_os_bindings::wasm::coap::{
-    CanInstantiate, CoAPError, EphemeralCapsule, WasmHandler, WasmHandlerWrapped,
+    CanInstantiate, EphemeralCapsule,
 };
 
 use ariel_os_bindings::wasm::ArielOSHost;
