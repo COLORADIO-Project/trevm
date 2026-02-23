@@ -11,3 +11,7 @@ world example-ephemeral-with-bindings {
 
     export mess-with-temperature: func();
 }
+
+world example-sandbox-no-bindings {
+    export run: func() -> string;
+}

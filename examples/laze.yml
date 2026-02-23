@@ -10,3 +10,4 @@ subdirs:
   - persistent-no-bindings
   - persistent-with-bindings
   - fake-sensor
+  - sandbox-no-bindings

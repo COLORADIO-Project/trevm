@@ -1,5 +1,5 @@
 [package]
-name = "persistent-no-bindings"
+name = "sandbox-no-bindings"
 license.workspace = true
 edition.workspace = true
 publish = false

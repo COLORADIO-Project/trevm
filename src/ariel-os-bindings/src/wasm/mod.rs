@@ -10,8 +10,8 @@ pub mod time;
 #[cfg(feature = "udp")]
 pub mod udp;
 
-#[cfg(feature = "coap-server-guest")]
-pub mod coap_server_guest;
+#[cfg(feature = "coap")]
+pub mod coap;
 
 #[cfg(feature = "gpio")]
 pub mod gpio;

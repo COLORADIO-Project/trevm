@@ -16,7 +16,7 @@ use wasmtime::{Config, Engine, Store};
 use coap_handler::Handler;
 use coap_handler_implementations::{HandlerBuilder, ReportingHandlerBuilder};
 
-use ariel_os_bindings::wasm::coap_server_guest::{
+use ariel_os_bindings::wasm::coap::{
     CanInstantiate, CoAPError, PersistentCapsule, WasmHandler, WasmHandlerWrapped,
 };
 
@@ -50,11 +50,11 @@ impl CanInstantiate<ArielOSHost> for ExamplePersistentNoBindings {
     }
 }
 
-impl PersistentCapsule for ExamplePersistentNoBindings {
+impl PersistentCapsule<ArielOSHost> for ExamplePersistentNoBindings {
     type E = CoapErr;
-    fn coap_run<T: 'static>(
+    fn coap_run(
         &mut self,
-        store: &mut Store<T>,
+        store: &mut Store<ArielOSHost>,
         code: u8,
         observed_len: u32,
         buffer: Vec<u8>,
@@ -76,26 +76,28 @@ impl PersistentCapsule for ExamplePersistentNoBindings {
         }
     }
 
-    fn initialize_handler<T: 'static>(&mut self, store: &mut Store<T>) -> Result<(), ()> {
+    fn initialize_handler(&mut self, store: &mut Store<ArielOSHost>) -> wasmtime::Result<()> {
         match self
             .ariel_wasm_bindings_coap_server_guest()
             .call_initialize_handler(store)
         {
-            Ok(handler_init_rep) => handler_init_rep,
+            Ok(handler_init_rep) => match handler_init_rep {
+                Ok(()) => Ok(()),
+                Err(()) => Err(wasmtime::Error::msg(
+                    "Handler initialization failed in the capsule",
+                )),
+            },
             Err(wasm_error) => {
                 error!(
                     "The capsule has crashed at startup, CoAP requests to it will return 5.00 \n{}",
                     defmt::Display2Format(&wasm_error)
                 );
-                Err(())
+                Err(wasm_error)
             }
         }
     }
 
-    fn report_resources<T: 'static>(
-        &mut self,
-        store: &mut Store<T>,
-    ) -> Result<Vec<String>, Self::E> {
+    fn report_resources(&mut self, store: &mut Store<ArielOSHost>) -> Result<Vec<String>, Self::E> {
         match self
             .ariel_wasm_bindings_coap_server_guest()
             .call_report(store)
@@ -172,7 +174,9 @@ struct Control<'w, G: CanInstantiate<ArielOSHost>> {
     engine: &'w Engine,
 }
 
-impl<'w, G: CanInstantiate<ArielOSHost> + PersistentCapsule> Handler for Control<'w, G> {
+impl<'w, G: CanInstantiate<ArielOSHost> + PersistentCapsule<ArielOSHost>> Handler
+    for Control<'w, G>
+{
     // Block option to respond with, and code
     type RequestData = (Option<u32>, u8);
 

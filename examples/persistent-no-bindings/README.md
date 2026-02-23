@@ -45,12 +45,12 @@ This example has been tested on the following boards:
 
 ## How to change the capsule's code
 
-* Edit the example's source code in `../../payloads/ephemeral-no-bindings/`,
+* Edit the example's source code in `../../payloads/persistent-no-bindings/`,
   or build an own project in a similar way.
 
 * Rebuild and upload the firmware:
 
 ```console
-$ ../../precompile_wasm.rs --path ../../payloads/ephemeral-no-bindings/Cargo.toml -o payload.cwasm --config ../../payloads/.cargo/config.toml
+$ ../../precompile_wasm.rs --path ../../payloads/persistent-no-bindings/Cargo.toml -o payload.cwasm --config ../../payloads/.cargo/config.toml
 $ pipx run --spec 'aiocoap[oscore, prettyprint]' aiocoap-client coap://<Address of the server>/vm-control -m PUT --payload @./payload.cwasm --credentials ./client.diag
 ```
