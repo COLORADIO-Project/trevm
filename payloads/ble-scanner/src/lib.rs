@@ -17,8 +17,8 @@ generate!({
     generate_all,
 });
 
-use alloc::format;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::format;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
@@ -33,18 +33,12 @@ unsafe impl<T> Sync for SendCell<T> {}
 
 static SEEN: SendCell<BTreeMap<[u8; 6], u64>> = SendCell(RefCell::new(BTreeMap::new()));
 
-
 impl core::fmt::Display for BdAddr {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-            self.f,
-            self.e,
-            self.d,
-            self.c,
-            self.b,
-            self.a,
+            self.f, self.e, self.d, self.c, self.b, self.a,
         )
     }
 }
@@ -86,7 +80,6 @@ impl Default for BdAddr {
     }
 }
 
-
 impl Guest for MyComponent {
     fn on_single_report(addr: BdAddr) -> Result<(), ()> {
         let mut addr_collection = SEEN.0.borrow_mut();
@@ -100,7 +93,11 @@ impl Guest for MyComponent {
     }
 
     fn return_stats() -> Vec<(BdAddr, u64)> {
-        SEEN.0.borrow().iter().map(|(addr, count)| { (BdAddr::new(*addr), *count) }).collect()
+        SEEN.0
+            .borrow()
+            .iter()
+            .map(|(addr, count)| (BdAddr::new(*addr), *count))
+            .collect()
     }
 }
 
