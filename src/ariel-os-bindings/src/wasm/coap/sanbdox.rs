@@ -127,6 +127,7 @@ impl<'a, T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Sandbox<'a, 
             .try_reserve(payload.len())
             .is_err()
         {
+            self.last_received_vector.truncate(0);
             // FIXME: CoAPError should have such a constructor too (but there's no harm in
             // returning an error through the Ok path).
             return Ok((None, coap_numbers::code::REQUEST_ENTITY_TOO_LARGE));
@@ -215,7 +216,12 @@ impl<T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Handler for Sand
 
         let Some(path) = path else {
             return Err(CoAPError::not_found());
+        };
+        // I don't want to deal with empty path
+        if path.is_empty() {
+            return Err(CoAPError::forbidden())
         }
+
         match request.code().into() {
             // Request to instantiate a new capsule
             coap_numbers::code::PUT => {
