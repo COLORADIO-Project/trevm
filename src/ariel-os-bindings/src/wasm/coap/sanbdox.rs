@@ -271,9 +271,8 @@ impl<T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Handler for Sand
                 Err(SandboxError::NotFound) => Err(CoAPError::not_found()),
                 Err(SandboxError::WebAssembly) => Err(CoAPError::internal_server_error()),
                 Ok(r) => Ok(r),
-            }
-            .map_err(CoAPError::from_unionerror)?;
-            block2_write(block2, response, |w| write!(w, "{:?}", result).unwrap());
+            }?;
+            block2_write(block2, response, |w| write!(w, "{:?}", result).map_err(|_| CoAPError::internal_server_error()))?;
         }
         Ok(())
     }
