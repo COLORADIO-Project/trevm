@@ -213,10 +213,9 @@ impl<T: 'static + Default, R: Debug, G: EphemeralCapsule<T, R>> Handler for Sand
             })
             .ignore_elective_others()?;
 
-        if path.is_none() {
-            return Err(CoAPError::bad_request());
+        let Some(path) = path else {
+            return Err(CoAPError::not_found());
         }
-        let path = path.unwrap();
         match request.code().into() {
             // Request to instantiate a new capsule
             coap_numbers::code::PUT => {
