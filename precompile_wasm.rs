@@ -13,6 +13,8 @@ thiserror = { version = "2.0.12" }
 #![feature(trim_prefix_suffix)]
 use std::{fs, io, path::{PathBuf, Path}, process::Command};
 use std::io::BufRead as _;
+use std::format;
+
 use clap::{Parser, ValueEnum, builder::PossibleValue};
 use miette::Diagnostic;
 
@@ -137,7 +139,7 @@ fn main() -> miette::Result<()> {
                         vec![toolchain.leak()]
                     }
                     else {
-                        vec!["+", toolchain.leak()]
+                        vec![format!("+{}", toolchain).leak()]
                     }
                 }
                 None => {

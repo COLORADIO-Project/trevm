@@ -1,5 +1,8 @@
 [workspace]
-members = ["examples/*", "src/ariel-os-bindings"]
+members = [
+  "examples/[a-z]*",
+  "src/ariel-os-bindings",
+]
 
 exclude = ["build/", "payloads/"]
 resolver = "3"
