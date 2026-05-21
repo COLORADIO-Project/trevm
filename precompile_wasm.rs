@@ -2,10 +2,10 @@
 ---cargo
 [package]
 edition = "2024"
-
 [dependencies]
 clap = { version = "4.5.40", features = ["derive"]}
-wasmtime = {  git = "https://github.com/bytecodealliance/wasmtime", rev = "3dc6b5ec5572ab8b304c668d5b929bbc7f49cbcf", default-features = false, features = ["component-model", "async", "cranelift", "pulley"] }
+# > 44.0.0 broke support for custom page size in components
+wasmtime = {  version = "43", default-features = false, features = ["component-model", "async", "cranelift", "pulley"] }
 miette = { version = "7.2.0", features = ["fancy"] }
 thiserror = { version = "2.0.12" }
 
