@@ -16,5 +16,6 @@ cargo +nightly-2026-01-20 -Z script precompile_wasm.rs --path payloads/simple-up
 cargo +nightly-2026-01-20 -Z script precompile_wasm.rs --path payloads/simple-updates-2/Cargo.toml -o ./examples/simple-updates/payload2.cwasm --config payloads/.cargo/config.toml --toolchain nightly-2026-01-20
 
 cp examples/simple-updates/*.cwasm examples/insecure-updates/
+cp examples/async-bindings/payload.cwasm examples/updatable-async/async-payload.cwasm
 
 cargo +nightly-2026-01-20 -Z script precompile_wasm.rs --path payloads/sensors/Cargo.toml -o examples/fake-sensor/payload.cwasm --config payloads/.cargo/config.toml --toolchain +nightly-2026-01-20
