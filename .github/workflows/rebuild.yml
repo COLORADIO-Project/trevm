@@ -30,7 +30,7 @@ jobs:
       - name: Install wasm-tools
         uses: taiki-e/install-action@74e87cbfa15a59692b158178d8905a61bf6fca95 # v2
         with:
-          tool: wasm-tools
+          tool: wasm-tools@1.246.0
       - run: ./rebuild-all-payloads.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
