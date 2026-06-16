@@ -1,5 +1,5 @@
 [package]
-name = "updatable-async"
+name = "suit-updatable"
 license.workspace = true
 edition.workspace = true
 publish = false
@@ -25,11 +25,18 @@ coap-numbers = "0.2"
 # would also be welcome, but so far I don't think wasmtime exports that (plus
 # it probably take a lot of source map magic to make real use of it).
 coap-message-utils = { version = "0.3.0", features = ["error_title"] }
+coap-request = "0.2.0-alpha.2"
+coap-request-implementations = "0.1.0-alpha.4"
 
+cose-nostd = {git = "https://codeberg.org/COLORADIO-Project/cose-nostd.git", version = "0.1.0", features = ["sign1", "p-256", "verify"]}
+dress-up = { git = "https://github.com/ariel-os/dress-up", branch = "async",  features = ["async"] }
+generic-array = {version = "1.4.1", default-features = false }
+uuid = { version = "1.23.1", default-features = false, features = ["v5"] }
 wasmtime = { workspace = true, default-features = false, features = [
   "pulley",
   "runtime",
   "component-model",
+  "async"
 ] }
 
 rand_core = { workspace = true }

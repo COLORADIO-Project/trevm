@@ -1,8 +1,9 @@
 apps:
-  - name:  updatable-async
+  - name:  suit-updatable
     context:
       - espressif-esp32-c6-devkitc-1
     selects:
+      - coap-client
       - coap-server
       - ?coap-server-config-storage
       - alloc
