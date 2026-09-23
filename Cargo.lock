@@ -1343,7 +1343,7 @@ dependencies = [
 [[package]]
 name = "cose-nostd"
 version = "0.1.0"
-source = "git+https://codeberg.org/COLORADIO-Project/cose-nostd.git#47af660e945c2476499e2fce3c7adac1e718df5e"
+source = "git+https://codeberg.org/COLORADIO-Project/cose-nostd.git?rev=59053ef78916ff038858b45fdd73ed9389c303f1#59053ef78916ff038858b45fdd73ed9389c303f1"
 dependencies = [
  "hex-literal",
  "minicbor",
@@ -1722,8 +1722,8 @@ dependencies = [
 
 [[package]]
 name = "dress-up"
-version = "0.1.0"
-source = "git+https://github.com/ariel-os/dress-up?branch=async#0ec541ba6d20423799ba5b2e5f372efd74ab952c"
+version = "0.1.1"
+source = "git+https://github.com/ariel-os/dress-up?rev=52c06ec6847fb9e60e09cb6a91cab73702db953b#52c06ec6847fb9e60e09cb6a91cab73702db953b"
 dependencies = [
  "bitflags 2.11.1",
  "ctutils",
