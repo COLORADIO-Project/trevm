@@ -57,7 +57,7 @@ aiocoap-fileserver .
 Send the signed manifest to the board:
 
 ```sh
-aiocoap-client -m PUT --payload @suit/manifest.signed.suit coap://<board-address>/vm-control
+aiocoap-client -m PUT --payload @suit/manifest.signed.suit coap://<board-address>/control
 ```
 
 The key pair in `suit/` is for this example only. Firmware verification uses `suit/demo-public-key-p256.bin`.

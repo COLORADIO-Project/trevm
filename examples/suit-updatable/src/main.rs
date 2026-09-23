@@ -47,7 +47,7 @@ async fn coap_task() {
     let control = VmControl::new();
 
     let handler = new_dispatcher()
-        .at_with_attributes(&["vm-control"], &[], control)
+        .at_with_attributes(&["control"], &[], control)
         .with_wkc();
 
     info!("Starting CoAP handler");
@@ -115,7 +115,7 @@ async fn suit_update_task() {
                 UPDATE_RESULTS.send(Ok(capsule)).await
             }
             Err(e) => {
-                warn!("[SUIT] Failed to retrieve capsule: {:?}", Debug2Format(&e));
+                warn!("[SUIT] Failed to complete update: {:?}", Debug2Format(&e));
                 UPDATE_RESULTS.send(Err(())).await
             }
         }
